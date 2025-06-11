@@ -4,8 +4,12 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class Steganography {
-
+    public static CryptoManager cryptoManager = new CryptoManager();
     public static void hideMessage(BufferedImage image, String message, String outputPath) throws IOException {
+
+        try{
+        message = cryptoManager.encrypt(message, cryptoManager.generateKey(), cryptoManager.generateIV());
+        }catch(Exception e){}
         message += '\0'; // dodajemy znak końca wiadomości
 
         byte[] msgBytes = message.getBytes(StandardCharsets.UTF_8);
@@ -39,8 +43,7 @@ public class Steganography {
                 image.setRGB(x, y, newRGB);
             }
         }
-
-        ImageIO.write(image, "png", new File(outputPath));
+        FileService.saveImage(image, new File(outputPath), "png");
     }
 
     public static String extractMessage(BufferedImage image) {
@@ -67,6 +70,10 @@ public class Steganography {
             }
         }
 
-        return out.toString(StandardCharsets.UTF_8);
+        String crypto_message=  out.toString(StandardCharsets.UTF_8);
+        try {
+            crypto_message = cryptoManager.decrypt(crypto_message, CryptoManager.loadKey("secret.key"), CryptoManager.loadIV("secret.iv"));
+        }catch(Exception e){}
+        return crypto_message;
     }
 }

@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 public class FileService {
 
-    private void validateFile(File file, String... allowedExtensions) throws IOException {
+    private static void validateFile(File file, String... allowedExtensions) throws IOException {
         if (file == null || !file.exists() || !file.isFile()) {
             throw new FileNotFoundException("Plik nie istnieje lub nie jest plikiem: " + file);
         }
@@ -26,13 +26,13 @@ public class FileService {
     }
 
     // Wczytuje obraz z pliku (PNG, BMP)
-    public BufferedImage loadImage(File file) throws IOException {
+    public static BufferedImage loadImage(File file) throws IOException {
         validateFile(file, ".png", ".bmp");
         return ImageIO.read(file);
     }
 
     // Zapisuje obraz do pliku
-    public void saveImage(BufferedImage image, File outputFile, String formatName) throws IOException {
+    public static void saveImage(BufferedImage image, File outputFile, String formatName) throws IOException {
         if (image == null) throw new IllegalArgumentException("Obraz nie może być null.");
         if (outputFile == null) throw new IllegalArgumentException("Plik wyjściowy nie może być null.");
 
@@ -45,7 +45,7 @@ public class FileService {
     }
 
     // Wczytuje tekst z pliku
-    public String loadText(File file) throws IOException {
+    public static String loadText(File file) throws IOException {
         validateFile(file, ".txt");
 
         StringBuilder sb = new StringBuilder();
@@ -59,7 +59,7 @@ public class FileService {
     }
 
     // Zapisuje tekst do pliku
-    public void saveText(String text, File file) throws IOException {
+    static public void saveText(String text, File file) throws IOException {
         if (file == null) throw new IllegalArgumentException("Plik nie może być null.");
         if (text == null) throw new IllegalArgumentException("Tekst nie może być null.");
 

@@ -9,7 +9,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
-
+import javax.swing.JFileChooser;
+import java.io.File;
 public class CypherScene {
     public Scene getScene(Stage stage, Scene mainScene) {
         Group root = new Group();

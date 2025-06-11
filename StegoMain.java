@@ -13,12 +13,9 @@ public class StegoMain {
             System.out.print("Podaj ścieżkę do obrazu PNG lub BMP: ");
             String imagePath = scanner.nextLine().trim();
             File imageFile = new File(imagePath);
-            if (!imageFile.exists()) {
-                System.err.println("Plik obrazu nie istnieje: " + imageFile.getAbsolutePath());
-                return;
-            }
 
-            BufferedImage image = ImageIO.read(imageFile);
+
+            BufferedImage image = FileService.loadImage(imageFile);
             if (image == null) {
                 System.err.println("Nie można wczytać obrazu. Czy to poprawny PNG/BMP?");
                 return;
@@ -30,8 +27,7 @@ public class StegoMain {
             if (choice.equals("1")) {
                 System.out.print("Podaj ścieżkę do pliku tekstowego do ukrycia: ");
                 String textFilePath = scanner.nextLine().trim();
-                String message = new String(Files.readAllBytes(Paths.get(textFilePath)), "UTF-8");
-
+                String message = FileService.loadText(new File(textFilePath));
                 System.out.print("Podaj nazwę pliku wynikowego (np. ukryty.png): ");
                 String outputPath = scanner.nextLine().trim();
 
@@ -47,7 +43,7 @@ public class StegoMain {
                 if (save.equalsIgnoreCase("t")) {
                     System.out.print("Podaj nazwę pliku wyjściowego: ");
                     String outputTextPath = scanner.nextLine().trim();
-                    Files.write(Paths.get(outputTextPath), extracted.getBytes("UTF-8"));
+                    FileService.saveText(extracted, new File(outputTextPath));
                     System.out.println("Zapisano do pliku: " + outputTextPath);
                 }
 
