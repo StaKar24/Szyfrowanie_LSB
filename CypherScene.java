@@ -49,12 +49,37 @@ public class CypherScene {
         button.setPrefHeight(60);
         button.setFont(new Font("Arial", 20));
 
+        button.setOnAction(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File("."));
+
+            int response = fileChooser.showSaveDialog(null);
+
+            if(response == JFileChooser.APPROVE_OPTION){
+                File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                System.out.println(file);;
+            }
+        });
+        
+
         Button button2 = new Button("Search for image");
         button2.setLayoutX(700);
         button2.setLayoutY(300);
         button2.setPrefWidth(200);
         button2.setPrefHeight(60);
         button2.setFont(new Font("Arial", 20));
+
+        button2.setOnAction(e -> {
+            JFileChooser imageChooser = new JFileChooser();
+            imageChooser.setCurrentDirectory(new File("."));
+
+            int response = imageChooser.showSaveDialog(null);
+
+            if(response == JFileChooser.APPROVE_OPTION){
+                File file = new File(imageChooser.getSelectedFile().getAbsolutePath());
+                System.out.println(file);;
+            }
+        });
 
         Button returnB = new Button("Return");
         returnB.setLayoutX(700);
