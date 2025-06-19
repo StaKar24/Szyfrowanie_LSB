@@ -9,6 +9,7 @@ import java.util.Base64;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Scanner;
 
 //Klasa do szyfrowania i odszyfrowywania tekstu za pomocą algorytmu ABS/CBC
 
@@ -19,26 +20,31 @@ public class CryptoManager {
 
 
     // Generuje losowy 128-bitowy klucz AES
-    public SecretKey generateKey() throws Exception {
+    public SecretKey generateKey(String FileName) throws Exception {
         KeyGenerator keyGen = KeyGenerator.getInstance(ALGORITHM);
         keyGen.init(128); // 128-bit AES
         SecretKey key = keyGen.generateKey();
         String base64Key = Base64.getEncoder().encodeToString(key.getEncoded());
+
+        //wziecie nazwy pliku (bez rozszerzenia)
+        Scanner scanner = new Scanner(FileName).useDelimiter("\\.");
         //zapisywanie do bliku
-        try (FileOutputStream fos = new FileOutputStream("secret.key")) {
+        try (FileOutputStream fos = new FileOutputStream(scanner.next() + "secret.key")) {
             fos.write(base64Key.getBytes());
         }
         return key;
     }
 
     // Generuje losowy wektor inicjalizujący (IV)
-    public IvParameterSpec generateIV() throws Exception {
-        byte[] iv = new byte[16]; // AES block size
+    public IvParameterSpec generateIV( String FileName) throws Exception {
+        byte[] iv = new byte[16]; // AdES block size
         new SecureRandom().nextBytes(iv);
+        //wziecie nazwy pliku (bez rozszerzenia)
+        Scanner scanner = new Scanner(FileName).useDelimiter("\\.");
 
-        //zapisywanie do pliku
+        //zapisywanie do pliku iv jako nazwa-pliku + secret.iv
         String base64IV = Base64.getEncoder().encodeToString(iv);
-        try (FileOutputStream fos = new FileOutputStream("secret.iv")) {
+        try (FileOutputStream fos = new FileOutputStream( scanner.next() + "secret.iv")) {
             fos.write(base64IV.getBytes());
         }
 

@@ -2,13 +2,24 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.io.IOException;
+import java.util.Scanner;
 
 public class Steganography {
     public static CryptoManager cryptoManager = new CryptoManager();
-    public static void hideMessage(BufferedImage image, String message, String outputPath) throws IOException {
+    public static void hideMessage(File imageFile, String textFilePath, String outputPath) throws IOException {
 
+        if(!canTextFitInImage(imageFile.getName(), textFilePath)) {
+            System.exit(-1);
+        }
+
+
+
+        BufferedImage image = FileService.loadImage(imageFile);
+        String message = FileService.loadText(new File(textFilePath));
         try{
-        message = cryptoManager.encrypt(message, cryptoManager.generateKey(), cryptoManager.generateIV());
+            message = cryptoManager.encrypt(message, cryptoManager.generateKey(outputPath), cryptoManager.generateIV(outputPath));
         }catch(Exception e){}
         message += '\0'; // dodajemy znak końca wiadomości
 
@@ -46,7 +57,8 @@ public class Steganography {
         FileService.saveImage(image, new File(outputPath), "png");
     }
 
-    public static String extractMessage(BufferedImage image) {
+    public static String extractMessage(File imageFile) throws IOException{
+        BufferedImage image = FileService.loadImage(imageFile);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int currentByte = 0;
         int bitIndex = 0;
@@ -72,8 +84,35 @@ public class Steganography {
 
         String crypto_message=  out.toString(StandardCharsets.UTF_8);
         try {
-            crypto_message = cryptoManager.decrypt(crypto_message, CryptoManager.loadKey("secret.key"), CryptoManager.loadIV("secret.iv"));
+            System.out.println(crypto_message);
+            Scanner scanner = new Scanner(imageFile.getName()).useDelimiter("\\.");
+            String keyFilename = scanner.next();
+            crypto_message = cryptoManager.decrypt(crypto_message, CryptoManager.loadKey(keyFilename + "secret.key"), CryptoManager.loadIV(keyFilename + "secret.iv"));
         }catch(Exception e){}
         return crypto_message;
+    }
+
+
+    public static boolean canTextFitInImage(String imagePath, String textFilePath) {
+        try {
+            // Wczytaj obraz
+            BufferedImage image = ImageIO.read(new File(imagePath));
+            int width = image.getWidth();
+            int height = image.getHeight();
+            int totalPixels = width * height;
+
+            // Wczytaj plik tekstowy jako bajty
+            File textFile = new File(textFilePath);
+            long textSizeInBytes = Files.size(textFile.toPath());
+
+            // Liczba bitow potrzebna na tekst + metadane
+            long requiredBits = (textSizeInBytes * 8);
+
+            return requiredBits <= totalPixels;
+
+        } catch (IOException e) {
+            System.err.println("Blad podczas odczytu plikow: " + e.getMessage());
+            return false;
+        }
     }
 }

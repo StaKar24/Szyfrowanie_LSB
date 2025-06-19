@@ -15,11 +15,7 @@ public class StegoMain {
             File imageFile = new File(imagePath);
 
 
-            BufferedImage image = FileService.loadImage(imageFile);
-            if (image == null) {
-                System.err.println("Nie można wczytać obrazu. Czy to poprawny PNG/BMP?");
-                return;
-            }
+            //BufferedImage image = FileService.loadImage(imageFile);
 
             System.out.print("1. Ukryj wiadomość\n2. Odczytaj wiadomość\nWybierz (1/2): ");
             String choice = scanner.nextLine().trim();
@@ -27,15 +23,14 @@ public class StegoMain {
             if (choice.equals("1")) {
                 System.out.print("Podaj ścieżkę do pliku tekstowego do ukrycia: ");
                 String textFilePath = scanner.nextLine().trim();
-                String message = FileService.loadText(new File(textFilePath));
                 System.out.print("Podaj nazwę pliku wynikowego (np. ukryty.png): ");
                 String outputPath = scanner.nextLine().trim();
 
-                Steganography.hideMessage(image, message, outputPath);
+                Steganography.hideMessage(imageFile, textFilePath, outputPath);
                 System.out.println("Wiadomość została ukryta w obrazie: " + outputPath);
 
             } else if (choice.equals("2")) {
-                String extracted = Steganography.extractMessage(image);
+                String extracted = Steganography.extractMessage(imageFile);
                 System.out.println("Odczytana wiadomość:\n" + extracted);
 
                 System.out.print("Zapisz wynik do pliku? (t/n): ");
@@ -50,7 +45,6 @@ public class StegoMain {
             } else {
                 System.out.println("Niepoprawny wybór.");
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
