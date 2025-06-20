@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -49,27 +50,30 @@ public class DecypherScene extends JFrame{
         button.setPrefHeight(60);
         button.setFont(new Font("Arial", 20));
 
-        button.setOnAction(e -> {
-            JFileChooser imageChooser = new JFileChooser();
-            imageChooser.setCurrentDirectory(new File("."));
+button.setOnAction(e -> {
+    JFileChooser imageChooser = new JFileChooser();
+    imageChooser.setCurrentDirectory(new File("."));
 
-            int response = imageChooser.showSaveDialog(null);
+    int response = imageChooser.showSaveDialog(null);
 
-            if(response == JFileChooser.APPROVE_OPTION){
-                File selectedFile = imageChooser.getSelectedFile();
-                System.out.println("Wybrano plik: " + selectedFile);
+    if (response == JFileChooser.APPROVE_OPTION) {
+        File selectedFile = imageChooser.getSelectedFile();
+        System.out.println("Wybrano plik: " + selectedFile);
 
-                // Ustaw przycisk z nazwą pliku
-                imageFileButton2.setText("📄 " + selectedFile.getName());
-                imageFileButton2.setUserData(selectedFile); // zapisz obiekt File do przycisku
-                imageFileButton2.setVisible(true);
-            }
-        });
+        // przypisz do pola klasy
+        imageToDecypher = selectedFile;
+
+        // Ustaw przycisk z nazwą pliku
+        imageFileButton2.setText("📄 " + selectedFile.getName());
+        imageFileButton2.setUserData(selectedFile); // zapisz obiekt File do przycisku
+        imageFileButton2.setVisible(true);
+    }
+});
 
         // Przycisk z nazwą pliku (widoczny tylko po wczytaniu)
         imageFileButton2 = new Button();
         imageFileButton2.setVisible(false);
-        imageFileButton2.setLayoutX(420);
+        imageFileButton2.setLayoutX(380);
         imageFileButton2.setLayoutY(370);
         imageFileButton2.setFont(Font.font("Arial", 16));
 
@@ -77,6 +81,23 @@ public class DecypherScene extends JFrame{
             if (imageFileButton2.isDisabled()) return;
             imageFileButton2.setDisable(true);
             showImageWindow(imageFileButton2);
+        });
+
+        Button buttonDeCode = new Button("Decypher");
+        buttonDeCode.setLayoutX(425);
+        buttonDeCode.setLayoutY(240);
+        buttonDeCode.setPrefWidth(115);
+        buttonDeCode.setPrefHeight(40);
+        buttonDeCode.setFont(new Font("Arial", 20));
+        //buttonDeCode.setVisible(false);
+
+        buttonDeCode.setOnAction(e -> {
+            try {
+                    Steganography.extractMessage(imageToDecypher);
+                    System.out.println("tez dziala");
+                } catch (IOException ef) {
+                    System.out.println("Blad przy szyfrowaniu pliku: " + ef.getMessage());
+                }
         });
 
         Button returnB = new Button("Return");
@@ -89,9 +110,11 @@ public class DecypherScene extends JFrame{
         // >>> Wróć do sceny głównej po kliknięciu
         returnB.setOnAction(e -> stage.setScene(mainScene));
 
-        root.getChildren().addAll(text, line, imageview, button, returnB, imageFileButton2);
+        root.getChildren().addAll(text, line, imageview, button, returnB, imageFileButton2, buttonDeCode);
         return scene;
     }
+
+    private File imageToDecypher;
 
     private void showImageWindow(Button sourceButton) {
     File file = (File) sourceButton.getUserData();
