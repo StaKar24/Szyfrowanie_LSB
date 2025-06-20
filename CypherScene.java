@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -68,12 +70,18 @@ public class CypherScene extends JFrame{
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setCurrentDirectory(new File("."));
 
-            int response = fileChooser.showSaveDialog(null);
+            int response = fileChooser.showOpenDialog(null);
 
             if(response == JFileChooser.APPROVE_OPTION){
                 File selectedFile = fileChooser.getSelectedFile();
+                File targetFile = new File("./fileTxt.txt");
                 System.out.println("Wybrano plik: " + selectedFile);
-
+                try {
+                    String content = FileService.loadText(selectedFile);
+                    FileService.saveText(content, targetFile);
+                } catch (IOException ef) {
+                    System.out.println("Błąd zapisu pliku: " + ef.getMessage());
+                }
                 // Ustaw przycisk z nazwą pliku
                 fileNameButton.setText("📄 " + selectedFile.getName());
                 fileNameButton.setUserData(selectedFile); // zapisz obiekt File do przycisku
@@ -151,6 +159,15 @@ public class CypherScene extends JFrame{
         buttonCode.setFont(new Font("Arial", 20));
         //buttonCode.setVisible(false);
 
+        buttonCode.setOnAction(e -> {
+            try {
+                    Steganography.hideMessage(copiedImageFile, "./fileTxt.txt", "./zdj.png");
+                    System.out.println("dziala");
+                } catch (IOException ef) {
+                    System.out.println("Blad przy szyfrowaniu pliku: " + ef.getMessage());
+                }
+        });
+
         root.getChildren().addAll(text, line, imageview, button, button2, returnB, imageview2, fileNameButton, imageFileButton, buttonCode);
         return scene;
     }
@@ -158,19 +175,20 @@ public class CypherScene extends JFrame{
 
 
 private void showFileContentWindow(Button sourceButton) {
-    File file = (File) sourceButton.getUserData();
-    if (file == null || !file.exists()) return;
+    File file = new File("./fileTxt.txt"); //Użycie domyślnego pliku
+
+    // if (!file.exists()) {
+    //     System.out.println("Plik nie istnieje: " + file.getAbsolutePath());
+    //     return;
+    // }
 
     Stage popupStage = new Stage();
-    popupStage.setTitle("Zawartość pliku: " + file.getName());
+    popupStage.setTitle(file.getName());
+
     TextArea area = new TextArea();
     area.setWrapText(true);
     area.setEditable(false);
     area.setFont(Font.font("Consolas", 14));
-
-
-    //String content = FileService.loadText(file);
-
 
     StringBuilder content = new StringBuilder();
 
@@ -182,9 +200,6 @@ private void showFileContentWindow(Button sourceButton) {
     } catch (IOException ex) {
         content.append("Błąd podczas odczytu pliku: ").append(ex.getMessage());
     }
-
-
-
 
     area.setText(content.toString());
 
@@ -202,38 +217,48 @@ private void showFileContentWindow(Button sourceButton) {
     popupStage.setScene(popupScene);
     popupStage.setResizable(false);
 
+    // Jeżeli przycisk został zablokowany wcześniej, odblokuj go po zamknięciu okna
     popupStage.setOnHidden(ev -> sourceButton.setDisable(false));
 
     popupStage.show();
 }
 
+
+private File copiedImageFile = null; // pole globalne np. w klasie MainApp lub kontrolerze
+
 private void showImageWindow(Button sourceButton) {
-    File file = (File) sourceButton.getUserData();
-    if (file == null || !file.exists()) return;
+    File originalFile = (File) sourceButton.getUserData();
+    if (originalFile == null || !originalFile.exists()) return;
 
-    Stage popupStage = new Stage();
-    popupStage.setTitle("Obraz: " + file.getName());
+    // Ścieżka do zapisu
+    File targetDir = new File(".");
+    if (!targetDir.exists()) {
+        targetDir.mkdirs(); // utwórz katalog jeśli nie istnieje
+    }
 
+    // Utwórz nową nazwę pliku (możesz dodać np. timestamp jeśli potrzebujesz unikalności)
+    copiedImageFile = new File(targetDir, originalFile.getName());
 
+    try {
+        Files.copy(originalFile.toPath(), copiedImageFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+        showError("Nie udało się skopiować obrazu: " + e.getMessage());
+        return;
+    }
 
-    // BufferedImage image = FileService.loadImage(file);
-
+    // Wczytaj obraz z nowej lokalizacji
     Image image;
     try {
-        image = new Image(file.toURI().toString());
+        image = new Image(copiedImageFile.toURI().toString());
     } catch (Exception e) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Błąd");
-        alert.setHeaderText(null);
-        alert.setContentText("Nie można załadować obrazu.");
-        alert.showAndWait();
+        showError("Nie można załadować obrazu.");
         sourceButton.setDisable(false);
         return;
     }
 
-
-
-
+    // Tworzenie okna z obrazem
+    Stage popupStage = new Stage();
+    popupStage.setTitle(copiedImageFile.getName());
 
     ImageView imageView = new ImageView(image);
     imageView.setPreserveRatio(true);
@@ -254,11 +279,19 @@ private void showImageWindow(Button sourceButton) {
     popupStage.setScene(scene);
     popupStage.setResizable(false);
 
-    // Odblokuj przycisk po zamknięciu okna
     popupStage.setOnHidden(ev -> sourceButton.setDisable(false));
 
     popupStage.show();
 }
+
+private void showError(String message) {
+    Alert alert = new Alert(Alert.AlertType.ERROR);
+    alert.setTitle("Błąd");
+    alert.setHeaderText(null);
+    alert.setContentText(message);
+    alert.showAndWait();
+}
+
 
 }
 
