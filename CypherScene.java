@@ -23,6 +23,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
+import javafx.scene.control.TextField;
+
 
 public class CypherScene extends JFrame{
     private Button fileNameButton;
@@ -64,6 +66,13 @@ public class CypherScene extends JFrame{
         button.setPrefWidth(200);
         button.setPrefHeight(60);
         button.setFont(new Font("Arial", 20));
+
+        TextField outputFileNameField = new TextField("zaszyfrowany.png");
+        outputFileNameField.setLayoutX(420);
+        outputFileNameField.setLayoutY(420);
+        outputFileNameField.setPrefWidth(200);
+        outputFileNameField.setFont(Font.font("Arial", 16));
+
 
         button.setOnAction(e -> {
             
@@ -119,6 +128,8 @@ public class CypherScene extends JFrame{
             if(response == JFileChooser.APPROVE_OPTION){
                 File selectedFile = imageChooser.getSelectedFile();
                 System.out.println("Wybrano plik: " + selectedFile);
+                //ustawianie zmiennej globalnej file do szyfrowanego obrazu
+                copiedImageFile = selectedFile;
 
                 // Ustaw przycisk z nazwą pliku
                 imageFileButton.setText("📄 " + selectedFile.getName());
@@ -137,6 +148,7 @@ public class CypherScene extends JFrame{
         imageFileButton.setOnAction(e -> {
             if (imageFileButton.isDisabled()) return;
             imageFileButton.setDisable(true);
+
             showImageWindow(imageFileButton);
         });
         
@@ -160,14 +172,23 @@ public class CypherScene extends JFrame{
         //buttonCode.setVisible(false);
 
         buttonCode.setOnAction(e -> {
-            try {
-                    Steganography.hideMessage(copiedImageFile, "./fileTxt.txt", "./zdj.png");
-                    System.out.println("dziala");
-                } catch (IOException ef) {
-                    System.out.println("Blad przy szyfrowaniu pliku: " + ef.getMessage());
-                }
-        });
+            String outputFileName = outputFileNameField.getText().trim();
+            if (outputFileName.isEmpty()) {
+                showError("Podaj nazwę pliku do zapisania zaszyfrowanego obrazu.");
+                return;
+            }
 
+            File outputImageFile = new File(outputFileName);
+
+            try {
+                Steganography.hideMessage(copiedImageFile, "./fileTxt.txt", outputImageFile.getAbsolutePath());
+                System.out.println("Zaszyfrowano wiadomość w: " + outputImageFile.getAbsolutePath());
+            } catch (IOException ef) {
+                System.out.println("Błąd przy szyfrowaniu pliku: " + ef.getMessage());
+            }
+
+        });
+        root.getChildren().add(outputFileNameField);
         root.getChildren().addAll(text, line, imageview, button, button2, returnB, imageview2, fileNameButton, imageFileButton, buttonCode);
         return scene;
     }
@@ -237,8 +258,9 @@ private void showImageWindow(Button sourceButton) {
     }
 
     // Utwórz nową nazwę pliku (możesz dodać np. timestamp jeśli potrzebujesz unikalności)
-    copiedImageFile = new File(targetDir, originalFile.getName());
-
+    if(copiedImageFile == null) {
+        copiedImageFile = new File(targetDir, originalFile.getName());
+    }
     try {
         Files.copy(originalFile.toPath(), copiedImageFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {

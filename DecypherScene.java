@@ -16,9 +16,13 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.stage.Stage;
+import javafx.scene.control.TextField;
+
 
 public class DecypherScene extends JFrame{
     private Button imageFileButton2;
+    private String decodedMessage = "";
+
     public Scene getScene(Stage stage, Scene mainScene) {
         Group root = new Group();
         Scene scene = new Scene(root, 1000, 1000, Color.LIGHTGREY);
@@ -83,6 +87,44 @@ button.setOnAction(e -> {
             showImageWindow(imageFileButton2);
         });
 
+
+
+        TextField fileNameField = new TextField();
+        fileNameField.setPromptText("Wpisz nazwę pliku");
+        fileNameField.setLayoutX(380);
+        fileNameField.setLayoutY(460);
+        fileNameField.setPrefWidth(260);
+        fileNameField.setFont(Font.font("Arial", 16));
+        fileNameField.setVisible(false); // <<< Ukryj na start
+
+        // 🔹 Przycisk zapisu
+        Button saveButton = new Button("Zapisz wiadomość ");
+        saveButton.setLayoutX(380);
+        saveButton.setLayoutY(500);
+        saveButton.setPrefWidth(200);
+        saveButton.setPrefHeight(40);
+        saveButton.setFont(new Font("Arial", 16));
+        saveButton.setVisible(false); // <<< Ukryj na start
+
+
+        saveButton.setOnAction(e -> {
+            File file = new File(fileNameField.getText());
+            if (fileNameField.getText().isEmpty()) {
+                System.err.println("Blad w podaniu nazwy pliku!");
+                return;
+            }
+            if (decodedMessage == null || decodedMessage.isEmpty()) {
+                System.err.println("Blad, brak wiadomosci do zapisania!");
+                return;
+            }
+            try {
+                FileService.saveText(decodedMessage, file );
+            } catch (IOException ex) {
+                System.err.println("Blad, nie udalo się zapisac pliku: " + ex.getMessage());
+            }
+        });
+
+
         Button buttonDeCode = new Button("Decypher");
         buttonDeCode.setLayoutX(425);
         buttonDeCode.setLayoutY(240);
@@ -93,8 +135,11 @@ button.setOnAction(e -> {
 
         buttonDeCode.setOnAction(e -> {
             try {
-                    Steganography.extractMessage(imageToDecypher);
-                    System.out.println("tez dziala");
+                    decodedMessage = Steganography.extractMessage(imageToDecypher); // 🔹 ZAPISZ do zmiennej
+                    System.out.println(decodedMessage);
+                    //System.out.println("tez dziala");
+                    fileNameField.setVisible(true);
+                    saveButton.setVisible(true);
                 } catch (IOException ef) {
                     System.out.println("Blad przy szyfrowaniu pliku: " + ef.getMessage());
                 }
@@ -110,7 +155,7 @@ button.setOnAction(e -> {
         // >>> Wróć do sceny głównej po kliknięciu
         returnB.setOnAction(e -> stage.setScene(mainScene));
 
-        root.getChildren().addAll(text, line, imageview, button, returnB, imageFileButton2, buttonDeCode);
+        root.getChildren().addAll(text, line, imageview, button, returnB, imageFileButton2, buttonDeCode, fileNameField, saveButton);
         return scene;
     }
 
